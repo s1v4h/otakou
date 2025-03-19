@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -26,7 +28,17 @@ type Anime struct {
 	EndDate                time.Time `json:"end_date"`
 }
 
+var animes []Anime
+
 func main() {
+	file, err := os.ReadFile("animes.json")
+	if err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(file, &animes); err != nil {
+		panic(err)
+	}
+
 	fmt.Println("running at http://localhost:3000")
 	panic(http.ListenAndServe(":3000", nil))
 }
