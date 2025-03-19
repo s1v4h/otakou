@@ -41,6 +41,7 @@ func main() {
 	}
 
 	http.HandleFunc("GET /animes", listAnimes)
+	http.HandleFunc("GET /animes/{id}", getAnime)
 
 	fmt.Println("running at http://localhost:3000")
 	panic(http.ListenAndServe(":3000", nil))
@@ -65,4 +66,20 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 	}
 	end := min(offset+limit, len(animes))
 	json.NewEncoder(w).Encode(animes[offset:end])
+}
+
+func getAnime(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.PathValue("id"))
+	if id <= 0 {
+		http.Error(w, "id must be a non-zero uint", http.StatusBadRequest)
+		return
+	}
+
+	for i := range animes {
+		if animes[i].ID == uint(id) {
+			json.NewEncoder(w).Encode(animes[i])
+			return
+		}
+	}
+	http.NotFound(w, r)
 }
