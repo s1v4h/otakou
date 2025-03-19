@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -39,6 +40,29 @@ func main() {
 		panic(err)
 	}
 
+	http.HandleFunc("GET /animes", listAnimes)
+
 	fmt.Println("running at http://localhost:3000")
 	panic(http.ListenAndServe(":3000", nil))
+}
+
+func listAnimes(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit <= 0 {
+		limit = 100
+	} else if limit > 1000 {
+		limit = 1000
+	}
+
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	if offset < 0 {
+		offset = 0
+	}
+
+	if offset >= len(animes) {
+		w.Write([]byte("[]"))
+		return
+	}
+	end := min(offset+limit, len(animes))
+	json.NewEncoder(w).Encode(animes[offset:end])
 }
