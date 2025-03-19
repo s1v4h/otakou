@@ -29,7 +29,10 @@ type Anime struct {
 	EndDate                time.Time `json:"end_date"`
 }
 
-var animes []Anime
+var (
+	animes   []Anime
+	animeMap map[uint]*Anime
+)
 
 func main() {
 	file, err := os.ReadFile("animes.json")
@@ -38,6 +41,11 @@ func main() {
 	}
 	if err := json.Unmarshal(file, &animes); err != nil {
 		panic(err)
+	}
+	animeMap = make(map[uint]*Anime, len(animes))
+	for i := range animes {
+		anime := &animes[i]
+		animeMap[anime.ID] = anime
 	}
 
 	http.HandleFunc("GET /animes", listAnimes)
@@ -75,11 +83,9 @@ func getAnime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := range animes {
-		if animes[i].ID == uint(id) {
-			json.NewEncoder(w).Encode(animes[i])
-			return
-		}
+	if anime, ok := animeMap[uint(id)]; ok {
+		json.NewEncoder(w).Encode(anime)
+		return
 	}
 	http.NotFound(w, r)
 }
