@@ -52,7 +52,14 @@ func main() {
 	http.HandleFunc("GET /animes/{id}", getAnime)
 
 	fmt.Println("running at http://localhost:3000")
-	panic(http.ListenAndServe(":3000", nil))
+	panic(http.ListenAndServe(":3000", jsonMiddleware(http.DefaultServeMux)))
+}
+
+func jsonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func listAnimes(w http.ResponseWriter, r *http.Request) {
