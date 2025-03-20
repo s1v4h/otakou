@@ -63,24 +63,53 @@ func jsonMiddleware(next http.Handler) http.Handler {
 }
 
 func listAnimes(w http.ResponseWriter, r *http.Request) {
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	uq := r.URL.Query()
+
+	limit, _ := strconv.Atoi(uq.Get("limit"))
 	if limit <= 0 {
 		limit = 100
 	} else if limit > 1000 {
 		limit = 1000
 	}
 
-	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	offset, _ := strconv.Atoi(uq.Get("offset"))
 	if offset < 0 {
 		offset = 0
 	}
 
-	if offset >= len(animes) {
-		w.Write([]byte("[]"))
-		return
+	var typeIn, typeNotIn map[string]bool
+	if l := uq["type_in"]; len(l) > 0 {
+		typeIn = make(map[string]bool, len(l))
+		for _, v := range l {
+			typeIn[v] = true
+		}
+	} else if l = uq["type_not_in"]; len(l) > 0 {
+		typeNotIn = make(map[string]bool, len(l))
+		for _, v := range l {
+			typeNotIn[v] = true
+		}
 	}
-	end := min(offset+limit, len(animes))
-	json.NewEncoder(w).Encode(animes[offset:end])
+
+	filteredAnimes := make([]*Anime, 0, limit)
+	for i := range animes {
+		anime := &animes[i]
+
+		if typeIn != nil && !typeIn[anime.Type] ||
+			typeNotIn != nil && typeNotIn[anime.Type] {
+			continue
+		}
+
+		if offset > 0 {
+			offset--
+			continue
+		}
+
+		filteredAnimes = append(filteredAnimes, anime)
+		if len(filteredAnimes) == limit {
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(filteredAnimes)
 }
 
 func getAnime(w http.ResponseWriter, r *http.Request) {
