@@ -90,12 +90,24 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var status, statusNot string
+	if s := uq.Get("status"); s != "" {
+		status = s
+	} else if s = uq.Get("status_not"); s != "" {
+		statusNot = s
+	}
+
 	filteredAnimes := make([]*Anime, 0, limit)
 	for i := range animes {
 		anime := &animes[i]
 
 		if typeIn != nil && !typeIn[anime.Type] ||
 			typeNotIn != nil && typeNotIn[anime.Type] {
+			continue
+		}
+
+		if status != "" && status != anime.Status ||
+			statusNot != "" && statusNot == anime.Status {
 			continue
 		}
 
