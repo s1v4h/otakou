@@ -97,6 +97,13 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		statusNot = s
 	}
 
+	minScore, _ := strconv.ParseFloat(uq.Get("min_score"), 32)
+	maxScore, _ := strconv.ParseFloat(uq.Get("max_score"), 32)
+	if minScore > maxScore {
+		http.Error(w, "min_score cannot be greater than max_score", http.StatusBadRequest)
+		return
+	}
+
 	filteredAnimes := make([]*Anime, 0, limit)
 	for i := range animes {
 		anime := &animes[i]
@@ -108,6 +115,11 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 
 		if status != "" && status != anime.Status ||
 			statusNot != "" && statusNot == anime.Status {
+			continue
+		}
+
+		if minScore > 0 && float32(minScore) > anime.Score ||
+			maxScore > 0 && float32(maxScore) < anime.Score {
 			continue
 		}
 
