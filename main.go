@@ -9,10 +9,40 @@ import (
 	"time"
 )
 
+type AnimeType uint
+
+const (
+	UNKNOWN_TYPE AnimeType = iota
+	MOVIE
+	ONA
+	OVA
+	SPECIAL
+	TV
+)
+
+func parseAnimeType(s string) (AnimeType, error) {
+	switch s {
+	case "UNKNOWN":
+		return UNKNOWN_TYPE, nil
+	case "MOVIE":
+		return MOVIE, nil
+	case "ONA":
+		return ONA, nil
+	case "OVA":
+		return OVA, nil
+	case "SPECIAL":
+		return SPECIAL, nil
+	case "TV":
+		return TV, nil
+	default:
+		return 0, fmt.Errorf("invalid AnimeType: %q", s)
+	}
+}
+
 type Anime struct {
 	ID                     uint      `json:"id"`
 	MalID                  uint      `json:"mal_id"`
-	Type                   string    `json:"type"`
+	Type                   AnimeType `json:"type"`
 	Status                 string    `json:"status"`
 	TitleRomanized         string    `json:"title_romanized"`
 	TitleEnglish           string    `json:"title_english"`
@@ -77,16 +107,26 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		offset = 0
 	}
 
-	var typeIn, typeNotIn map[string]bool
+	var typeIn, typeNotIn map[AnimeType]bool
 	if l := uq["type_in"]; len(l) > 0 {
-		typeIn = make(map[string]bool, len(l))
+		typeIn = make(map[AnimeType]bool, len(l))
 		for _, v := range l {
-			typeIn[v] = true
+			e, err := parseAnimeType(v)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("invalid value for type_in: %v", err), http.StatusBadRequest)
+				return
+			}
+			typeIn[e] = true
 		}
 	} else if l = uq["type_not_in"]; len(l) > 0 {
-		typeNotIn = make(map[string]bool, len(l))
+		typeNotIn = make(map[AnimeType]bool, len(l))
 		for _, v := range l {
-			typeNotIn[v] = true
+			e, err := parseAnimeType(v)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("invalid value for type_not_in: %v", err), http.StatusBadRequest)
+				return
+			}
+			typeNotIn[e] = true
 		}
 	}
 
