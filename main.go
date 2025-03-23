@@ -39,24 +39,45 @@ func parseAnimeType(s string) (AnimeType, error) {
 	}
 }
 
+type AnimeStatus uint
+
+const (
+	PLANNED AnimeStatus = iota + 1
+	AIRING
+	FINISHED
+)
+
+func parseAnimeStatus(s string) (AnimeStatus, error) {
+	switch s {
+	case "PLANNED":
+		return PLANNED, nil
+	case "AIRING":
+		return AIRING, nil
+	case "FINISHED":
+		return FINISHED, nil
+	default:
+		return 0, fmt.Errorf("invalid AnimeStatus: %q", s)
+	}
+}
+
 type Anime struct {
-	ID                     uint      `json:"id"`
-	MalID                  uint      `json:"mal_id"`
-	Type                   AnimeType `json:"type"`
-	Status                 string    `json:"status"`
-	TitleRomanized         string    `json:"title_romanized"`
-	TitleEnglish           string    `json:"title_english"`
-	Synonyms               []string  `json:"synonyms"`
-	Source                 string    `json:"source"`
-	Rating                 string    `json:"rating"`
-	Episodes               uint      `json:"episodes"`
-	EpisodeDurationMinutes uint      `json:"episode_duration_minutes"`
-	Score                  float32   `json:"score"`
-	Synopsis               string    `json:"synopsis"`
-	Genres                 []string  `json:"genres"`
-	Studios                []string  `json:"studios"`
-	StartDate              time.Time `json:"start_date"`
-	EndDate                time.Time `json:"end_date"`
+	ID                     uint        `json:"id"`
+	MalID                  uint        `json:"mal_id"`
+	Type                   AnimeType   `json:"type"`
+	Status                 AnimeStatus `json:"status"`
+	TitleRomanized         string      `json:"title_romanized"`
+	TitleEnglish           string      `json:"title_english"`
+	Synonyms               []string    `json:"synonyms"`
+	Source                 string      `json:"source"`
+	Rating                 string      `json:"rating"`
+	Episodes               uint        `json:"episodes"`
+	EpisodeDurationMinutes uint        `json:"episode_duration_minutes"`
+	Score                  float32     `json:"score"`
+	Synopsis               string      `json:"synopsis"`
+	Genres                 []string    `json:"genres"`
+	Studios                []string    `json:"studios"`
+	StartDate              time.Time   `json:"start_date"`
+	EndDate                time.Time   `json:"end_date"`
 }
 
 var (
@@ -130,11 +151,21 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var status, statusNot string
+	var status, statusNot AnimeStatus
 	if s := uq.Get("status"); s != "" {
-		status = s
+		e, err := parseAnimeStatus(s)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("invalid value for status: %v", err), http.StatusBadRequest)
+			return
+		}
+		status = e
 	} else if s = uq.Get("status_not"); s != "" {
-		statusNot = s
+		e, err := parseAnimeStatus(s)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("invalid value for status_not: %v", err), http.StatusBadRequest)
+			return
+		}
+		statusNot = e
 	}
 
 	minScore, _ := strconv.ParseFloat(uq.Get("min_score"), 32)
@@ -153,8 +184,8 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if status != "" && status != anime.Status ||
-			statusNot != "" && statusNot == anime.Status {
+		if status > 0 && status != anime.Status ||
+			statusNot > 0 && statusNot == anime.Status {
 			continue
 		}
 
