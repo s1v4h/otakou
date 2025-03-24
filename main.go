@@ -12,7 +12,7 @@ import (
 type AnimeType uint
 
 const (
-	UNKNOWN_TYPE AnimeType = iota
+	_ AnimeType = iota
 	MOVIE
 	ONA
 	OVA
@@ -22,8 +22,6 @@ const (
 
 func parseAnimeType(s string) (AnimeType, error) {
 	switch s {
-	case "UNKNOWN":
-		return UNKNOWN_TYPE, nil
 	case "MOVIE":
 		return MOVIE, nil
 	case "ONA":
@@ -42,7 +40,8 @@ func parseAnimeType(s string) (AnimeType, error) {
 type AnimeStatus uint
 
 const (
-	PLANNED AnimeStatus = iota + 1
+	_ AnimeStatus = iota
+	PLANNED
 	AIRING
 	FINISHED
 )
