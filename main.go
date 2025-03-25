@@ -191,6 +191,7 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 			genreNotIn[v] = true
 		}
 	}
+	allGenres := uq.Get("all_genres") == "true"
 
 	filteredAnimes := make([]*Anime, 0, limit)
 	for i := range animes {
@@ -213,10 +214,12 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 
 		if genreIn != nil || genreNotIn != nil {
 			ok := genreIn == nil
+			count := 0
 			for _, g := range anime.Genres {
 				if genreIn[g] {
 					ok = true
-					if genreNotIn == nil {
+					count++
+					if (!allGenres || count == len(genreIn)) && genreNotIn == nil {
 						break
 					}
 				}
@@ -225,7 +228,7 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			}
-			if !ok {
+			if !ok || allGenres && count != len(genreIn) {
 				continue
 			}
 		}
