@@ -174,6 +174,24 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var genreIn, genreNotIn map[string]bool
+	if l := uq["genre_in"]; len(l) > 0 {
+		genreIn = make(map[string]bool, len(l))
+		for _, v := range l {
+			genreIn[v] = true
+		}
+	}
+	if l := uq["genre_not_in"]; len(l) > 0 {
+		genreNotIn = make(map[string]bool, len(l))
+		for _, v := range l {
+			if genreIn[v] {
+				http.Error(w, fmt.Sprintf("genre_in and genre_not_in cannot contain the same genre: %q", v), http.StatusBadRequest)
+				return
+			}
+			genreNotIn[v] = true
+		}
+	}
+
 	filteredAnimes := make([]*Anime, 0, limit)
 	for i := range animes {
 		anime := &animes[i]
@@ -191,6 +209,25 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		if minScore > 0 && float32(minScore) > anime.Score ||
 			maxScore > 0 && float32(maxScore) < anime.Score {
 			continue
+		}
+
+		if genreIn != nil || genreNotIn != nil {
+			ok := genreIn == nil
+			for _, g := range anime.Genres {
+				if genreIn[g] {
+					ok = true
+					if genreNotIn == nil {
+						break
+					}
+				}
+				if genreNotIn[g] {
+					ok = false
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
 		}
 
 		if offset > 0 {
