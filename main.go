@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 )
 
 type AnimeType uint
@@ -59,24 +58,48 @@ func parseAnimeStatus(s string) (AnimeStatus, error) {
 	}
 }
 
+type AnimeSeason uint
+
+const (
+	_ AnimeSeason = iota
+	SPRING
+	SUMMER
+	FALL
+	WINTER
+)
+
+func parseAnimeSeason(s string) (AnimeSeason, error) {
+	switch s {
+	case "SPRING":
+		return SPRING, nil
+	case "SUMMER":
+		return SUMMER, nil
+	case "FALL":
+		return FALL, nil
+	case "WINTER":
+		return WINTER, nil
+	default:
+		return 0, fmt.Errorf("invalid AnimeSeason: %q", s)
+	}
+}
+
 type Anime struct {
-	ID                     uint        `json:"id"`
-	MalID                  uint        `json:"mal_id"`
-	Type                   AnimeType   `json:"type"`
-	Status                 AnimeStatus `json:"status"`
-	TitleRomanized         string      `json:"title_romanized"`
-	TitleEnglish           string      `json:"title_english"`
-	Synonyms               []string    `json:"synonyms"`
-	Source                 string      `json:"source"`
-	Rating                 string      `json:"rating"`
-	Episodes               uint        `json:"episodes"`
-	EpisodeDurationMinutes uint        `json:"episode_duration_minutes"`
-	Score                  float32     `json:"score"`
-	Synopsis               string      `json:"synopsis"`
-	Genres                 []string    `json:"genres"`
-	Studios                []string    `json:"studios"`
-	StartDate              time.Time   `json:"start_date"`
-	EndDate                time.Time   `json:"end_date"`
+	ID              uint        `json:"id"`
+	MalID           uint        `json:"mal_id"`
+	Type            AnimeType   `json:"type"`
+	Status          AnimeStatus `json:"status"`
+	Title           string      `json:"title"`
+	Synonyms        []string    `json:"synonyms"`
+	Source          string      `json:"source"`
+	Rating          string      `json:"rating"`
+	Episodes        uint        `json:"episodes"`
+	EpisodeDuration uint        `json:"episode_duration"`
+	Score           float32     `json:"score"`
+	Synopsis        string      `json:"synopsis"`
+	Genres          []string    `json:"genres"`
+	Studios         []string    `json:"studios"`
+	Season          AnimeSeason `json:"season"`
+	Year            uint        `json:"year"`
 }
 
 var (
