@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"strconv"
@@ -105,6 +106,8 @@ type Anime struct {
 var (
 	animes   []Anime
 	animeMap map[uint]*Anime
+
+	templates = template.Must(template.ParseGlob("*.html"))
 )
 
 func main() {
@@ -121,11 +124,15 @@ func main() {
 		animeMap[anime.ID] = anime
 	}
 
-	http.HandleFunc("GET /animes", listAnimes)
-	http.HandleFunc("GET /animes/{id}", getAnime)
+	api := http.NewServeMux()
+	api.HandleFunc("GET /animes", listAnimes)
+	api.HandleFunc("GET /animes/{id}", getAnime)
+	http.Handle("GET /api/", http.StripPrefix("/api", jsonMiddleware(api)))
+
+	http.HandleFunc("GET /{$}", home)
 
 	fmt.Println("running at http://localhost:3000")
-	panic(http.ListenAndServe(":3000", jsonMiddleware(http.DefaultServeMux)))
+	panic(http.ListenAndServe(":3000", nil))
 }
 
 func jsonMiddleware(next http.Handler) http.Handler {
@@ -133,6 +140,12 @@ func jsonMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	if err := templates.ExecuteTemplate(w, "home.html", nil); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }
 
 func listAnimes(w http.ResponseWriter, r *http.Request) {
