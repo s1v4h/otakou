@@ -147,7 +147,9 @@ func jsonMiddleware(next http.Handler) http.Handler {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	if err := templates.ExecuteTemplate(w, "home.html", nil); err != nil {
+	start := max(0, len(animes)-15)
+	recentAnimes := animes[start:]
+	if err := templates.ExecuteTemplate(w, "home.html", recentAnimes); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 }
