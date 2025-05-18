@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -118,6 +119,9 @@ func main() {
 	if err := json.Unmarshal(file, &animes); err != nil {
 		panic(err)
 	}
+	sort.Slice(animes, func(i, j int) bool {
+		return animes[i].ID < animes[j].ID
+	})
 	animeMap = make(map[uint]*Anime, len(animes))
 	for i := range animes {
 		anime := &animes[i]
