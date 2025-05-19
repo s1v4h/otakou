@@ -21,6 +21,23 @@ const (
 	TV
 )
 
+func (e AnimeType) String() string {
+	switch e {
+	case MOVIE:
+		return "MOVIE"
+	case ONA:
+		return "ONA"
+	case OVA:
+		return "OVA"
+	case SPECIAL:
+		return "SPECIAL"
+	case TV:
+		return "TV"
+	default:
+		return ""
+	}
+}
+
 func parseAnimeType(s string) (AnimeType, error) {
 	switch s {
 	case "MOVIE":
@@ -47,6 +64,19 @@ const (
 	FINISHED
 )
 
+func (e AnimeStatus) String() string {
+	switch e {
+	case PLANNED:
+		return "PLANNED"
+	case AIRING:
+		return "AIRING"
+	case FINISHED:
+		return "FINISHED"
+	default:
+		return ""
+	}
+}
+
 func parseAnimeStatus(s string) (AnimeStatus, error) {
 	switch s {
 	case "PLANNED":
@@ -69,6 +99,21 @@ const (
 	FALL
 	WINTER
 )
+
+func (e AnimeSeason) String() string {
+	switch e {
+	case SPRING:
+		return "SPRING"
+	case SUMMER:
+		return "SUMMER"
+	case FALL:
+		return "FALL"
+	case WINTER:
+		return "WINTER"
+	default:
+		return ""
+	}
+}
 
 func parseAnimeSeason(s string) (AnimeSeason, error) {
 	switch s {
