@@ -6,7 +6,10 @@
 	<ul>
 		{{ range . }}
 		<li>
-			<h3>{{ .Title }}</h3>
+			<article>
+				<img src="/thumbs/{{ .ID }}.webp">
+				<h3>{{ .Title }}</h3>
+			</article>
 		</li>
 		{{ end }}
 	</ul>

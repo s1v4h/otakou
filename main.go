@@ -178,6 +178,8 @@ func main() {
 	api.HandleFunc("GET /animes/{id}", getAnime)
 	http.Handle("GET /api/", http.StripPrefix("/api", jsonMiddleware(api)))
 
+	http.Handle("GET /thumbs/", http.StripPrefix("/thumbs", http.FileServer(http.Dir("./thumbs"))))
+
 	http.HandleFunc("GET /{$}", home)
 
 	fmt.Println("running at http://localhost:3000")
