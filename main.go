@@ -196,7 +196,7 @@ var (
 	templates = template.Must(template.ParseGlob("*.html"))
 )
 
-func main() {
+func init() {
 	file, err := os.ReadFile("animes.json")
 	if err != nil {
 		panic(err)
@@ -212,14 +212,15 @@ func main() {
 		anime := &animes[i]
 		animeMap[anime.ID] = anime
 	}
+}
 
+func main() {
 	api := http.NewServeMux()
 	api.HandleFunc("GET /animes", listAnimes)
 	api.HandleFunc("GET /animes/{id}", getAnime)
+
 	http.Handle("GET /api/", http.StripPrefix("/api", jsonMiddleware(api)))
-
 	http.Handle("GET /thumbs/", http.StripPrefix("/thumbs", http.FileServer(http.Dir("./thumbs"))))
-
 	http.HandleFunc("GET /{$}", home)
 
 	fmt.Println("running at http://localhost:3000")
