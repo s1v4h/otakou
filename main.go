@@ -90,6 +90,46 @@ func parseAnimeStatus(s string) (AnimeStatus, error) {
 	}
 }
 
+type AnimeRating uint
+
+const (
+	_ AnimeRating = iota
+	G
+	PG12
+	R15_PLUS
+	R18_PLUS
+)
+
+func (e AnimeRating) String() string {
+	switch e {
+	case G:
+		return "G"
+	case PG12:
+		return "PG12"
+	case R15_PLUS:
+		return "R15+"
+	case R18_PLUS:
+		return "R18+"
+	default:
+		return ""
+	}
+}
+
+func parseAnimeRating(s string) (AnimeRating, error) {
+	switch s {
+	case "G":
+		return G, nil
+	case "PG12":
+		return PG12, nil
+	case "R15+":
+		return R15_PLUS, nil
+	case "R18+":
+		return R18_PLUS, nil
+	default:
+		return 0, fmt.Errorf("invalid AnimeRating: %q", s)
+	}
+}
+
 type AnimeSeason uint
 
 const (
@@ -138,7 +178,7 @@ type Anime struct {
 	Title           string      `json:"title"`
 	Synonyms        []string    `json:"synonyms"`
 	Source          string      `json:"source"`
-	Rating          string      `json:"rating"`
+	Rating          AnimeRating `json:"rating"`
 	Episodes        uint        `json:"episodes"`
 	EpisodeDuration uint        `json:"episode_duration"`
 	Score           float32     `json:"score"`
