@@ -245,16 +245,24 @@ func home(w http.ResponseWriter, r *http.Request) {
 func listAnimes(w http.ResponseWriter, r *http.Request) {
 	uq := r.URL.Query()
 
-	limit, _ := strconv.Atoi(uq.Get("limit"))
-	if limit <= 0 {
-		limit = 100
-	} else if limit > 1000 {
-		limit = 1000
+	limit := 100
+	if s := uq.Get("limit"); s != "" {
+		n, _ := strconv.Atoi(s)
+		if n < 1 || n > 1000 {
+			http.Error(w, "limit must be an integer between 1 and 1000", http.StatusBadRequest)
+			return
+		}
+		limit = n
 	}
 
-	offset, _ := strconv.Atoi(uq.Get("offset"))
-	if offset < 0 {
-		offset = 0
+	offset := 0
+	if s := uq.Get("offset"); s != "" {
+		n, err := strconv.Atoi(s)
+		if err != nil || n < 0 {
+			http.Error(w, "offset must be a non-negative integer", http.StatusBadRequest)
+			return
+		}
+		offset = n
 	}
 
 	var typeIn, typeNotIn map[AnimeType]bool
