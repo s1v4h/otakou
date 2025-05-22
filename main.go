@@ -305,8 +305,23 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		statusNot = e
 	}
 
-	minScore, _ := strconv.ParseFloat(uq.Get("min_score"), 32)
-	maxScore, _ := strconv.ParseFloat(uq.Get("max_score"), 32)
+	var minScore, maxScore float32
+	if s := uq.Get("min_score"); s != "" {
+		f, _ := strconv.ParseFloat(s, 32)
+		if f < 1 || f > 10 {
+			http.Error(w, "min_score must be a float between 1.0 and 10.0", http.StatusBadRequest)
+			return
+		}
+		minScore = float32(f)
+	}
+	if s := uq.Get("max_score"); s != "" {
+		f, _ := strconv.ParseFloat(s, 32)
+		if f < 1 || f > 10 {
+			http.Error(w, "max_score must be a float between 1.0 and 10.0", http.StatusBadRequest)
+			return
+		}
+		maxScore = float32(f)
+	}
 	if minScore > maxScore {
 		http.Error(w, "min_score cannot be greater than max_score", http.StatusBadRequest)
 		return
@@ -345,8 +360,8 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if minScore > 0 && float32(minScore) > anime.Score ||
-			maxScore > 0 && float32(maxScore) < anime.Score {
+		if minScore > 0 && minScore > anime.Score ||
+			maxScore > 0 && maxScore < anime.Score {
 			continue
 		}
 
