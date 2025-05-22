@@ -351,39 +351,13 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		anime := &animes[i]
 
 		if typeIn != nil && !typeIn[anime.Type] ||
-			typeNotIn != nil && typeNotIn[anime.Type] {
+			typeNotIn != nil && typeNotIn[anime.Type] ||
+			status > 0 && status != anime.Status ||
+			statusNot > 0 && statusNot == anime.Status ||
+			minScore > 0 && minScore > anime.Score ||
+			maxScore > 0 && maxScore < anime.Score ||
+			!matchGenres(anime.Genres, genreIn, genreNotIn, allGenres) {
 			continue
-		}
-
-		if status > 0 && status != anime.Status ||
-			statusNot > 0 && statusNot == anime.Status {
-			continue
-		}
-
-		if minScore > 0 && minScore > anime.Score ||
-			maxScore > 0 && maxScore < anime.Score {
-			continue
-		}
-
-		if genreIn != nil || genreNotIn != nil {
-			ok := genreIn == nil
-			count := 0
-			for _, g := range anime.Genres {
-				if genreIn[g] {
-					ok = true
-					count++
-					if (!allGenres || count == len(genreIn)) && genreNotIn == nil {
-						break
-					}
-				}
-				if genreNotIn[g] {
-					ok = false
-					break
-				}
-			}
-			if !ok || allGenres && count != len(genreIn) {
-				continue
-			}
 		}
 
 		if offset > 0 {
@@ -397,6 +371,26 @@ func listAnimes(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	json.NewEncoder(w).Encode(filteredAnimes)
+}
+
+func matchGenres(genres []string, in, not map[string]bool, all bool) bool {
+	if in == nil && not == nil {
+		return true
+	}
+
+	count := 0
+	for _, g := range genres {
+		if not[g] {
+			return false
+		}
+		if in[g] {
+			count++
+			if not == nil && (!all || count == len(in)) {
+				return true
+			}
+		}
+	}
+	return !all || count == len(in)
 }
 
 func getAnime(w http.ResponseWriter, r *http.Request) {
